@@ -9,7 +9,7 @@ This script is designed to check if Docker Desktop is installed on your Mac, and
 ## Usage
 
 1. Clone this repository or download the `install_docker.py` script.
-2. Set the location of the Docker disk image using the `DOCKER_DMG_PATH` environment variable. The default location is `/Users/<username>/Downloads/Docker.dmg`, where `<username>` is the current user's username.
+2. Set the location of the Docker disk image using the `--path` flag. The default location is `/Users/<username>/Downloads/Docker.dmg`, where `<username>` is the current user's username.
 3. Run the script using the command `python install_docker.py`.
 
 The script will check if Docker Desktop is installed and if not, install it using the disk image at the specified location. If Docker Desktop is already installed, the script will print a message indicating that it's already installed.
