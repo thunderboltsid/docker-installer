@@ -67,6 +67,13 @@ def install_docker(path, dry_run=False):
             print(" ".join(["hdiutil", "attach", path, "-mountpoint", "/Volumes/Docker"]))
     else:
         print("Docker volume already attached at:", path)
+
+    if not dry_run:
+        os.chdir("/Volumes/Docker")
+        subprocess.call("./Docker.app/Contents/MacOS/Docker/install", shell=True)
+    else:
+        print("cd /Volumes/Docker")
+        print("./Docker.app/Contents/MacOS/Docker/install")
     print("Docker has been installed")
 
 
