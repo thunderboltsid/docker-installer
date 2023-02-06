@@ -70,7 +70,7 @@ def install_docker(path, dry_run=False):
 
     if not dry_run:
         os.chdir("/Volumes/Docker")
-        subprocess.call("./Docker.app/Contents/MacOS/Docker/install", shell=True)
+        subprocess.call("./Docker.app/Contents/MacOS/install", shell=True)
     else:
         print("cd /Volumes/Docker")
         print("./Docker.app/Contents/MacOS/Docker/install")
