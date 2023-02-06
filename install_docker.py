@@ -3,14 +3,14 @@ import platform
 import subprocess
 import requests
 import os
-import shutil
 
 
 def check_docker():
-    if shutil.which("docker") is None:
-        return False
-    else:
+    docker_app_path = "/Applications/Docker.app"
+    if os.path.exists(docker_app_path):
         return True
+    else:
+        return False
 
 
 def download_docker_dmg(path, dry_run=False):
