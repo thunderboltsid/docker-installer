@@ -23,7 +23,7 @@ crontab -e
 ```
 add the cron job (this will run every minute), and save the crontab file.
 ```
-* * * * * /usr/local/bin/python /path/to/install_docker.py
+* * * * * /usr/local/bin/python /path/to/install_docker.py > ~/cron.log
 ```
 
 ## Troubleshooting
