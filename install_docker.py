@@ -1,61 +1,87 @@
 import argparse
 import platform
 import subprocess
-import sys
+import requests
+import os
+import shutil
+
 
 def check_docker():
-    try:
-        output = subprocess.check_output(["docker", "info"])
-        return True
-    except subprocess.CalledProcessError:
+    if shutil.which("docker") is None:
         return False
+    else:
+        return True
 
-def install_docker(volume_path, dry_run=False):
-    if check_docker():
-        print('Docker is already installed')
+
+def download_docker_dmg(path, dry_run=False):
+    """Downloads Docker Desktop for Mac
+
+    path - path to store image
+    dry_run - if True, only print actions without actually downloading
+    """
+    # Define the URL to download Docker Desktop
+    if os.path.exists(path):
+        print(f"Image already exists for Docker desktop at {path}")
         return
 
-    architecture = platform.architecture()[0]
-    if architecture == '64bit':
+    architecture = platform.machine()
+    if architecture == 'x86_64':
         uri = 'https://desktop.docker.com/mac/main/amd64/Docker.dmg'
-    else:
+    elif architecture == 'arm64':
         uri = 'https://desktop.docker.com/mac/main/arm64/Docker.dmg'
-
-    if not dry_run:
-        subprocess.run(["curl", "-o", volume_path, uri])
     else:
-        print(f'curl -o {volume_path} {uri}')
+        raise Exception(f"Unknown architecture {architecture}")
 
-    # check if Docker volume is already attached
-    attached_volumes = subprocess.check_output(["hdiutil", "info"]).decode()
-    if f'/Volumes/Docker' in attached_volumes:
-        print(f'Docker volume is already attached at /Volumes/Docker')
-        return
-
+    # Download the Docker Desktop disk image
     if not dry_run:
-        subprocess.run(["hdiutil", "attach", volume_path])
-    else:
-        print(f'hdiutil attach {volume_path}')
+        response = requests.get(uri)
+        with open(path, "wb") as f:
+            f.write(response.content)
+    print(f'Downloaded Docker Desktop for {architecture} from {uri}.')
 
-    # check if Docker.app is already installed
-    app_path = '/Applications/Docker.app'
-    if check_docker():
-        print(f'Docker is already installed at {app_path}')
-        return
 
+def install_docker(path, dry_run=False):
+    volume_name = "Docker"
+    volume_path = None
+    # Check if the Docker volume is already attached
     if not dry_run:
-        subprocess.run(["cp", "-r", "/Volumes/Docker/Docker.app", app_path])
+        output = subprocess.check_output(["hdiutil", "info"]).decode("utf-8")
+        lines = output.split("\n")
+        for line in lines:
+            if volume_name in line:
+                volume_path = line.split("\t")[-1]
+                break
     else:
-        print(f'cp -r /Volumes/Docker/Docker.app {app_path}')
+        print("hdiutil info")
 
-    print(f'Docker has been installed at {app_path}')
+    # Attach the Docker volume if it's not already attached
+    if volume_path is None:
+        if not dry_run:
+            output = subprocess.check_output(["hdiutil", "attach", path, "-mountpoint", "/Volumes/Docker"]).decode("utf-8")
+            lines = output.split("\n")
+            for line in lines:
+                if "Apple_HFS" in line:
+                    volume_path = line.split("\t")[0]
+                    break
+        else:
+            print(" ".join(["hdiutil", "attach", path, "-mountpoint", "/Volumes/Docker"]))
+    else:
+        print("Docker volume already attached at:", path)
+    print("Docker has been installed")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Check and install Docker Desktop for Mac')
-    parser.add_argument('-p', '--path', help='Path to save Docker.dmg', default='~/Downloads/Docker.dmg')
+    parser.add_argument('-p', '--path', help='Path to save Docker.dmg', default='/Users/' + os.getlogin() + '/Downloads/Docker.dmg')
     parser.add_argument('-d', '--dry-run', help='Print actions that would be taken', action='store_true')
     args = parser.parse_args()
 
-    volume_path = args.path
+    path = args.path
     dry_run = args.dry_run
-    install_docker(volume_path, dry_run)
+
+    if check_docker():
+        print('Docker is already installed')
+    else:
+        print("Docker is not installed")
+        download_docker_dmg(path, dry_run)
+        install_docker(path, dry_run)
