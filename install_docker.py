@@ -51,8 +51,7 @@ def install_docker(path, dry_run=False):
             if volume_name in line:
                 volume_path = line.split("\t")[-1]
                 break
-    else:
-        print("hdiutil info")
+    print("hdiutil info")
 
     # Attach the Docker volume if it's not already attached
     if volume_path is None:
@@ -63,17 +62,16 @@ def install_docker(path, dry_run=False):
                 if "Apple_HFS" in line:
                     volume_path = line.split("\t")[0]
                     break
-        else:
-            print(" ".join(["hdiutil", "attach", path, "-mountpoint", "/Volumes/Docker"]))
+        print(" ".join(["hdiutil", "attach", path, "-mountpoint", "/Volumes/Docker"]))
     else:
         print("Docker volume already attached at:", path)
 
     if not dry_run:
         os.chdir("/Volumes/Docker")
         subprocess.call("./Docker.app/Contents/MacOS/install", shell=True)
-    else:
-        print("cd /Volumes/Docker")
-        print("./Docker.app/Contents/MacOS/Docker/install")
+
+    print("cd /Volumes/Docker")
+    print("./Docker.app/Contents/MacOS/Docker/install")
     print("Docker has been installed")
 
 
